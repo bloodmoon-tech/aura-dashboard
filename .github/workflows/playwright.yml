@@ -1,0 +1,45 @@
+name: Playwright E2E
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Install dependencies (pnpm workspace)
+        run: pnpm install
+
+      - name: Build frontend
+        run: pnpm --filter frontend build
+
+      - name: Start frontend
+        run: pnpm --filter frontend start &
+
+      - name: Wait for frontend
+        run: |
+          for i in {1..30}; do
+            if curl -sSf http://localhost:3000 >/dev/null; then
+              echo "server is up" && break
+            fi
+            sleep 1
+          done
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Run Playwright tests
+        run: cd frontend && npx playwright test --reporter=list
