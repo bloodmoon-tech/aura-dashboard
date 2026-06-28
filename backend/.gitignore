@@ -1,0 +1,8 @@
+# Ignore local backend secrets
+.env
+.env.*
+# Python artifacts
+__pycache__/
+*.pyc
+.venv/
+
